@@ -1,0 +1,170 @@
+project:
+  name: "Antarctic Whale Vocalization Classification"
+  version: "1.0.0"
+  random_seed: 42
+
+data:
+  raw_data_path: "data/raw/biodcase_development_set"
+  processed_data_path: "data/processed"
+  train_path: "data/processed/train"
+  test_path: "data/processed/test"
+  
+  # Spectrogram parameters
+  spectrogram:
+    nfft: 512
+    win_length: 256
+    hop_length: 5  # 98% overlap: hop = win_length * (1 - 0.98)
+    sample_rate: 250
+    n_mels: 128
+    fmin: 0
+    fmax: 125
+  
+  # Image preprocessing
+  image:
+    target_height: 128
+    target_width: 128
+    normalization: "minmax"  # Options: minmax, standard, none
+    
+  # Class labels
+  classes:
+    original: ["BmA", "BmB", "BmZ", "BmD", "Bp20", "Bp20Plus", "BpD"]
+    merged:
+      ABZ: ["BmA", "BmB", "BmZ"]
+      DDswp: ["BmD", "BpD"]
+      "20Hz20Plus": ["Bp20", "Bp20Plus"]
+  
+  # Data augmentation
+  augmentation:
+    enabled: true
+    time_stretch: [0.8, 1.2]
+    pitch_shift: [-2, 2]
+    noise_factor: 0.005
+    time_shift: 0.1
+
+features:
+  # Statistical features
+  statistical:
+    - mean
+    - std
+    - skewness
+    - kurtosis
+    - percentiles
+  
+  # Spectral features
+  spectral:
+    - spectral_centroid
+    - spectral_bandwidth
+    - spectral_rolloff
+    - mfcc
+    - chroma
+  
+  # Temporal features
+  temporal:
+    - zero_crossing_rate
+    - energy
+    - duration
+  
+  mfcc_coefficients: 20
+  chroma_bins: 12
+
+models:
+  # SVM parameters
+  svm:
+    kernel: "rbf"
+    C: [0.1, 1, 10, 100]
+    gamma: ["scale", "auto", 0.001, 0.01]
+    class_weight: "balanced"
+    
+  # Random Forest parameters
+  random_forest:
+    n_estimators: [100, 200, 300]
+    max_depth: [10, 20, 30, null]
+    min_samples_split: [2, 5, 10]
+    min_samples_leaf: [1, 2, 4]
+    class_weight: "balanced"
+    
+  # XGBoost parameters
+  xgboost:
+    n_estimators: 200
+    max_depth: 6
+    learning_rate: 0.1
+    subsample: 0.8
+    colsample_bytree: 0.8
+    objective: "multi:softmax"
+    eval_metric: "mlogloss"
+    
+  # LightGBM parameters
+  lightgbm:
+    n_estimators: 200
+    max_depth: 6
+    learning_rate: 0.1
+    num_leaves: 31
+    objective: "multiclass"
+    metric: "multi_logloss"
+    
+  # Neural Network parameters
+  neural_network:
+    hidden_layers: [256, 128, 64]
+    activation: "relu"
+    dropout: 0.3
+    batch_size: 32
+    epochs: 100
+    learning_rate: 0.001
+    optimizer: "adam"
+    early_stopping_patience: 10
+    
+  # Naive Bayes parameters
+  naive_bayes:
+    var_smoothing: 1e-9
+    
+  # Clustering parameters
+  clustering:
+    kmeans:
+      n_clusters: 7
+      max_iter: 300
+      n_init: 10
+    dbscan:
+      eps: 0.5
+      min_samples: 5
+    hdbscan:
+      min_cluster_size: 5
+      min_samples: 3
+    mean_shift:
+      bandwidth: null
+
+training:
+  test_size: 0.2
+  validation_size: 0.15
+  cross_validation:
+    enabled: true
+    n_folds: 5
+    stratified: true
+  
+  # Model selection
+  use_grid_search: true
+  scoring: "f1_weighted"
+  n_jobs: -1
+  verbose: 1
+
+evaluation:
+  metrics:
+    - accuracy
+    - precision
+    - recall
+    - f1_score
+    - confusion_matrix
+    - classification_report
+  
+  save_predictions: true
+  save_confusion_matrix: true
+  
+output:
+  models_dir: "models"
+  results_dir: "results"
+  logs_dir: "logs"
+  visualizations_dir: "visualizations"
+
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  save_to_file: true
