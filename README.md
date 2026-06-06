@@ -67,7 +67,7 @@ antarctic-whale-vocalization-classification/
 ## Installation
 
 ```bash
-git clone https://github.com/yourusername/antarctic-whale-vocalization-classification.git
+git clone https://github.com/alisayedahmad/antarctic-whale-vocalization-classification.git
 cd antarctic-whale-vocalization-classification
 pip install -r requirements.txt
 ```
